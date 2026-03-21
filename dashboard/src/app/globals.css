@@ -3,6 +3,8 @@
 @tailwind utilities;
 
 :root {
+  --font-jakarta: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-jetbrains: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --surface-base: #0A0A0A;
   --surface-raised: #111111;
   --surface-overlay: #1A1A1A;
