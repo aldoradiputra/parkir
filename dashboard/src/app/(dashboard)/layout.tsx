@@ -1,12 +1,33 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
+import { useAppStore } from "@/lib/store";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
+  const isAuthenticated = useAppStore((s) => s.isAuthenticated);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (hydrated && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [hydrated, isAuthenticated, router]);
+
+  if (!hydrated || !isAuthenticated) {
+    return null;
+  }
+
   return (
     <div className="flex min-h-screen bg-surface-base">
       <Sidebar />
