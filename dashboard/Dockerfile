@@ -6,6 +6,7 @@ COPY package.json package-lock.json* ./
 RUN npm ci
 
 COPY . .
+RUN mkdir -p public
 
 ARG NEXT_PUBLIC_API_URL=http://localhost:3001
 ARG NEXT_PUBLIC_WS_URL=ws://localhost:3001
@@ -20,9 +21,7 @@ WORKDIR /app
 
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-# Copy public dir if it has contents
-RUN mkdir -p ./public
-COPY --from=builder /app/public/ ./public/
+COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 
