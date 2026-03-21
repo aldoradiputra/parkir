@@ -1,0 +1,311 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id                 String     @id @default(uuid()) @db.Uuid
+  name               String     @db.VarChar(255)
+  contact_name       String     @db.VarChar(255)
+  phone              String     @db.VarChar(30)
+  email              String     @unique @db.VarChar(255)
+  password_hash      String     @db.VarChar(255)
+  midtrans_server_key String?   @db.VarChar(255)
+  midtrans_client_key String?   @db.VarChar(255)
+  nfc_credentials    Json?      @default("{}")
+  whatsapp_number    String?    @db.VarChar(30)
+  fonnte_api_key     String?    @db.VarChar(255)
+  language           String     @default("id") @db.VarChar(5)
+  created_at         DateTime   @default(now())
+  updated_at         DateTime   @updatedAt
+
+  locations          Location[]
+
+  @@map("tenants")
+}
+
+enum LocationType {
+  mall
+  office
+  hospital
+  airport
+  residential
+  public
+  event
+}
+
+enum StaffingMode {
+  staffed
+  unstaffed
+  hybrid
+}
+
+model Location {
+  id             String       @id @default(uuid()) @db.Uuid
+  tenant_id      String       @db.Uuid
+  name           String       @db.VarChar(255)
+  address        String?      @db.Text
+  city           String?      @db.VarChar(100)
+  location_type  LocationType @default(public)
+  staffing_mode  StaffingMode @default(unstaffed)
+  capacity_car   Int          @default(0)
+  capacity_moto  Int          @default(0)
+  tariff_config  Json         @default("{}")
+  timezone       String       @default("Asia/Jakarta") @db.VarChar(50)
+  active         Boolean      @default(true)
+  created_at     DateTime     @default(now())
+  updated_at     DateTime     @updatedAt
+
+  tenant         Tenant       @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  lanes          Lane[]
+  sessions       Session[]
+  members        Member[]
+  plate_rules    PlateRule[]
+  nfc_transactions NfcTransaction[]
+  daily_revenues DailyRevenue[]
+  alerts         Alert[]
+
+  @@map("locations")
+}
+
+enum LaneType {
+  entry
+  exit
+  both
+}
+
+enum LaneStatus {
+  online
+  offline
+  error
+}
+
+model Lane {
+  id               String     @id @default(uuid()) @db.Uuid
+  location_id      String     @db.Uuid
+  lane_name        String     @db.VarChar(100)
+  lane_type        LaneType   @default(both)
+  staffing_mode    StaffingMode @default(unstaffed)
+  api_key          String     @unique @db.VarChar(255)
+  last_heartbeat   DateTime?
+  firmware_version String?    @db.VarChar(50)
+  status           LaneStatus @default(offline)
+  error_state      String?    @db.Text
+  created_at       DateTime   @default(now())
+  updated_at       DateTime   @updatedAt
+
+  location         Location   @relation(fields: [location_id], references: [id], onDelete: Cascade)
+  sessions         Session[]
+  alerts           Alert[]
+
+  @@map("lanes")
+}
+
+enum VehicleType {
+  car
+  motorcycle
+}
+
+enum PaymentMethod {
+  cash
+  qris
+  nfc
+  monthly
+  free
+  waived
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  failed
+  refunded
+  waived
+}
+
+enum SessionType {
+  normal
+  lost_ticket
+  overnight
+  member
+  vip
+  event
+}
+
+model Session {
+  id                String        @id @default(uuid()) @db.Uuid
+  location_id       String        @db.Uuid
+  lane_id           String?       @db.Uuid
+  plate             String?       @db.VarChar(20)
+  plate_raw         String?       @db.VarChar(20)
+  plate_confidence  Float?
+  card_uid          String?       @db.VarChar(50)
+  vehicle_type      VehicleType   @default(car)
+  entry_image_url   String?       @db.Text
+  exit_image_url    String?       @db.Text
+  entry_time        DateTime      @default(now())
+  exit_time         DateTime?
+  duration_min      Int?
+  fee_calculated    Int?
+  fee_paid          Int?
+  payment_method    PaymentMethod?
+  payment_status    PaymentStatus @default(pending)
+  payment_ref       String?       @db.VarChar(255)
+  session_type      SessionType   @default(normal)
+  attendant_id      String?       @db.VarChar(100)
+  override_reason   String?       @db.Text
+  receipt_printed   Boolean       @default(false)
+  receipt_whatsapp  Boolean       @default(false)
+  synced_at         DateTime?
+  created_at        DateTime      @default(now())
+  updated_at        DateTime      @updatedAt
+
+  location          Location      @relation(fields: [location_id], references: [id], onDelete: Cascade)
+  lane              Lane?         @relation(fields: [lane_id], references: [id], onDelete: SetNull)
+  nfc_transactions  NfcTransaction[]
+
+  @@index([location_id, entry_time])
+  @@index([plate])
+  @@index([payment_status])
+  @@index([card_uid])
+  @@map("sessions")
+}
+
+enum PassType {
+  monthly
+  quarterly
+  yearly
+  prepaid
+}
+
+model Member {
+  id           String      @id @default(uuid()) @db.Uuid
+  location_id  String      @db.Uuid
+  plate        String      @db.VarChar(20)
+  vehicle_type VehicleType @default(car)
+  name         String      @db.VarChar(255)
+  phone        String?     @db.VarChar(30)
+  pass_type    PassType    @default(monthly)
+  balance      Int         @default(0)
+  valid_from   DateTime
+  valid_until  DateTime
+  active       Boolean     @default(true)
+  created_at   DateTime    @default(now())
+  updated_at   DateTime    @updatedAt
+
+  location     Location    @relation(fields: [location_id], references: [id], onDelete: Cascade)
+
+  @@index([location_id, plate])
+  @@map("members")
+}
+
+enum RuleType {
+  whitelist
+  blacklist
+  vip
+}
+
+model PlateRule {
+  id          String   @id @default(uuid()) @db.Uuid
+  location_id String   @db.Uuid
+  plate       String   @db.VarChar(20)
+  rule_type   RuleType @default(whitelist)
+  reason      String?  @db.Text
+  created_by  String?  @db.VarChar(255)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  location    Location @relation(fields: [location_id], references: [id], onDelete: Cascade)
+
+  @@index([location_id, plate])
+  @@map("plate_rules")
+}
+
+enum NfcCardType {
+  emoney
+  brizzi
+  tapcash
+  flazz
+  ektp
+}
+
+enum NfcStatus {
+  pending
+  success
+  failed
+  timeout
+}
+
+model NfcTransaction {
+  id           String      @id @default(uuid()) @db.Uuid
+  session_id   String?     @db.Uuid
+  location_id  String      @db.Uuid
+  card_uid     String      @db.VarChar(50)
+  card_type    NfcCardType
+  amount       Int
+  bank_ref     String?     @db.VarChar(255)
+  status       NfcStatus   @default(pending)
+  attempted_at DateTime    @default(now())
+  synced_at    DateTime?
+
+  session      Session?    @relation(fields: [session_id], references: [id], onDelete: SetNull)
+  location     Location    @relation(fields: [location_id], references: [id], onDelete: Cascade)
+
+  @@index([session_id])
+  @@map("nfc_transactions")
+}
+
+model DailyRevenue {
+  id                  String   @id @default(uuid()) @db.Uuid
+  location_id         String   @db.Uuid
+  date                DateTime @db.Date
+  total_sessions      Int      @default(0)
+  total_revenue       Int      @default(0)
+  qris_revenue        Int      @default(0)
+  nfc_revenue         Int      @default(0)
+  monthly_revenue     Int      @default(0)
+  cash_revenue        Int      @default(0)
+  waived_amount       Int      @default(0)
+  car_sessions        Int      @default(0)
+  motorcycle_sessions Int      @default(0)
+  avg_duration_min    Float    @default(0)
+  peak_hour           Int?
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  location            Location @relation(fields: [location_id], references: [id], onDelete: Cascade)
+
+  @@unique([location_id, date])
+  @@map("daily_revenues")
+}
+
+enum AlertType {
+  gate_fault
+  revenue_anomaly
+  lane_offline
+  capacity_full
+  system_error
+  security
+}
+
+model Alert {
+  id          String    @id @default(uuid()) @db.Uuid
+  location_id String    @db.Uuid
+  lane_id     String?   @db.Uuid
+  alert_type  AlertType
+  message     String    @db.Text
+  resolved    Boolean   @default(false)
+  resolved_by String?   @db.VarChar(255)
+  resolved_at DateTime?
+  created_at  DateTime  @default(now())
+
+  location    Location  @relation(fields: [location_id], references: [id], onDelete: Cascade)
+  lane        Lane?     @relation(fields: [lane_id], references: [id], onDelete: SetNull)
+
+  @@index([location_id, resolved])
+  @@map("alerts")
+}
