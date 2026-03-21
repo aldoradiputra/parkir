@@ -143,6 +143,7 @@ model Session {
   plate             String?       @db.VarChar(20)
   plate_raw         String?       @db.VarChar(20)
   plate_confidence  Float?
+  card_uid          String?       @db.VarChar(50)
   vehicle_type      VehicleType   @default(car)
   entry_image_url   String?       @db.Text
   exit_image_url    String?       @db.Text
@@ -170,6 +171,7 @@ model Session {
   @@index([location_id, entry_time])
   @@index([plate])
   @@index([payment_status])
+  @@index([card_uid])
   @@map("sessions")
 }
 
@@ -228,6 +230,7 @@ enum NfcCardType {
   brizzi
   tapcash
   flazz
+  ektp
 }
 
 enum NfcStatus {
