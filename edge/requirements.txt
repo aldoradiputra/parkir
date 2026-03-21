@@ -1,0 +1,35 @@
+# Edge Node - Parkir Smart Parking System
+# Python 3.11 on Raspberry Pi 4
+
+# Web framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+httpx==0.28.1
+websockets==14.1
+
+# Database
+aiosqlite==0.20.0
+
+# ANPR - Computer Vision
+opencv-python-headless==4.10.0.84
+ultralytics==8.3.50
+easyocr==1.7.2
+numpy>=1.26.0,<2.0
+
+# GPIO & Hardware
+RPi.GPIO==0.7.1
+nfcpy==1.0.4
+python-escpos==3.1
+
+# Receipt & Communication
+Pillow>=10.0.0
+qrcode==8.0
+
+# UI
+pygame==2.6.1
+
+# Utilities
+pydantic==2.10.3
+pydantic-settings==2.7.0
+python-dotenv==1.0.1
+tenacity==9.0.0
