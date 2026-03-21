@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ParkingCircle, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,18 +12,11 @@ import api, { endpoints } from "@/lib/api";
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAppStore();
-  const isAuthenticated = useAppStore((s) => s.isAuthenticated);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.replace("/overview");
-    }
-  }, [isAuthenticated, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +32,7 @@ export default function LoginPage() {
       login(user, token);
       if (typeof window !== "undefined") {
         localStorage.setItem("parkir_token", token);
+        document.cookie = `parkir_auth=${token}; path=/; max-age=${60 * 60 * 24 * 7}`;
       }
       router.push("/overview");
     } catch (err: any) {
