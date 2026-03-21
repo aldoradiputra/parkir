@@ -1,21 +1,36 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import "./globals.css";
 
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
+/*
+ * In production, replace these with Google Font imports:
+ *   import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+ * The local font declarations below use system font fallbacks so the build
+ * succeeds even without network access to Google Fonts.
+ */
+const jakarta = localFont({
+  src: [],
   variable: "--font-jakarta",
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
+  fallback: [
+    "Plus Jakarta Sans",
+    "ui-sans-serif",
+    "system-ui",
+    "-apple-system",
+    "sans-serif",
+  ],
 });
 
-const jetbrains = JetBrains_Mono({
-  subsets: ["latin"],
+const jetbrains = localFont({
+  src: [],
   variable: "--font-jetbrains",
-  weight: ["400", "500", "600"],
-  display: "swap",
+  fallback: [
+    "JetBrains Mono",
+    "ui-monospace",
+    "SFMono-Regular",
+    "monospace",
+  ],
 });
 
 export const metadata: Metadata = {
@@ -32,6 +47,18 @@ export default async function RootLayout({
 
   return (
     <html lang="id" className="dark">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body
         className={`${jakarta.variable} ${jetbrains.variable} font-sans antialiased bg-surface-base text-text-primary`}
       >
