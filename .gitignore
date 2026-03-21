@@ -47,7 +47,6 @@ coverage/
 htmlcov/
 
 # Generated
-prisma/migrations/
 generated/
 
 # Models (large files)
