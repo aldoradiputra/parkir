@@ -41,17 +41,13 @@ export const useAppStore = create<AppState>()(
           token,
           isAuthenticated: true,
         }),
-      logout: () => {
-        if (typeof document !== "undefined") {
-          document.cookie = "parkir_auth=; path=/; max-age=0";
-        }
+      logout: () =>
         set({
           user: null,
           token: null,
           isAuthenticated: false,
           selectedLocationId: null,
-        });
-      },
+        }),
       setSelectedLocationId: (id) => set({ selectedLocationId: id }),
       setLocations: (locations) => set({ locations }),
       setLocale: (locale) => set({ locale }),

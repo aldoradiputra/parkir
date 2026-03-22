@@ -1,5 +1,15 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
-  redirect("/overview");
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("parkir_token");
+    router.replace(token ? "/overview" : "/login");
+  }, [router]);
+
+  return null;
 }

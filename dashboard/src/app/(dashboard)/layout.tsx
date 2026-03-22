@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 
 export default function DashboardLayout({
@@ -7,6 +9,22 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
+  const [authorized, setAuthorized] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("parkir_token");
+    if (!token) {
+      router.replace("/login");
+    } else {
+      setAuthorized(true);
+    }
+  }, [router]);
+
+  if (!authorized) {
+    return null;
+  }
+
   return (
     <div className="flex min-h-screen bg-surface-base">
       <Sidebar />

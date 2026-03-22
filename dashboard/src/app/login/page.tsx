@@ -32,7 +32,6 @@ export default function LoginPage() {
       login(user, token);
       if (typeof window !== "undefined") {
         localStorage.setItem("parkir_token", token);
-        document.cookie = `parkir_auth=${token}; path=/; max-age=${60 * 60 * 24 * 7}`;
       }
       router.push("/overview");
     } catch (err: any) {
