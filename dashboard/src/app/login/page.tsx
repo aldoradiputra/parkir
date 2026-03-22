@@ -28,15 +28,15 @@ export default function LoginPage() {
         email,
         password,
       });
-      const { user, token } = response.data;
-      login(user, token);
+      const { tenant, token } = response.data;
+      login(tenant, token);
       if (typeof window !== "undefined") {
         localStorage.setItem("parkir_token", token);
       }
       router.push("/overview");
     } catch (err: any) {
       setError(
-        err.response?.data?.message || "Invalid email or password"
+        err.response?.data?.error || "Invalid email or password"
       );
     } finally {
       setLoading(false);
