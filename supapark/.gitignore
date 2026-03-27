@@ -1,0 +1,5 @@
+bin/
+cloud
+edge
+*.db
+.env
