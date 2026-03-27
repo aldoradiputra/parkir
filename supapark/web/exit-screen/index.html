@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#000000">
+  <title>SupaPark — Exit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- State: idle -->
+    <div id="screen-idle" class="screen active">
+      <div class="logo-lockup">
+        <svg viewBox="0 0 48 48" fill="none" class="logo-icon">
+          <rect x="10" y="8" width="10" height="32" rx="3" fill="#F5A623"/>
+          <path d="M20 8h10a10 10 0 0 1 0 20H20" stroke="#F5A623" stroke-width="8" stroke-linecap="round" fill="none"/>
+        </svg>
+        <span class="logo-text">SUPAPARK</span>
+      </div>
+      <p class="status-text">Menunggu kendaraan...</p>
+    </div>
+
+    <!-- State: detecting -->
+    <div id="screen-detecting" class="screen">
+      <div class="logo-lockup small">
+        <svg viewBox="0 0 48 48" fill="none" class="logo-icon">
+          <rect x="10" y="8" width="10" height="32" rx="3" fill="#F5A623"/>
+          <path d="M20 8h10a10 10 0 0 1 0 20H20" stroke="#F5A623" stroke-width="8" stroke-linecap="round" fill="none"/>
+        </svg>
+        <span class="logo-text">SUPAPARK</span>
+      </div>
+      <p class="status-text pulsing">Mendeteksi plat nomor...</p>
+      <div class="skeleton-plate"></div>
+    </div>
+
+    <!-- State: payment -->
+    <div id="screen-payment" class="screen">
+      <div class="payment-header">
+        <span class="plate-number" id="plate-display">B 1234 ABC</span>
+        <span class="vehicle-badge" id="vehicle-type-display">Mobil</span>
+      </div>
+      <div class="fee-section">
+        <span class="fee-label">Total Biaya Parkir</span>
+        <span class="fee-amount" id="fee-display">Rp 5.000</span>
+        <span class="duration-text" id="duration-display">Durasi: 2 jam 15 menit</span>
+      </div>
+      <div class="qr-section">
+        <div class="qr-container" id="qr-container">
+          <div class="skeleton-qr"></div>
+        </div>
+        <p class="qr-instruction">Scan atau tap QRIS untuk membayar</p>
+      </div>
+      <div class="timer-section">
+        <span class="timer-label">Batas waktu pembayaran</span>
+        <span class="timer" id="timer-display">02:59</span>
+      </div>
+    </div>
+
+    <!-- State: success -->
+    <div id="screen-success" class="screen">
+      <div class="success-icon">
+        <svg viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="30" fill="#22C55E" opacity="0.15"/>
+          <circle cx="32" cy="32" r="24" fill="#22C55E" opacity="0.3"/>
+          <path d="M20 32l8 8 16-16" stroke="#00FF88" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <p class="success-text">Pembayaran Berhasil!</p>
+      <p class="success-sub">Silakan lewat — palang terbuka</p>
+      <p class="success-plate" id="success-plate">B 1234 ABC</p>
+    </div>
+
+    <!-- State: member -->
+    <div id="screen-member" class="screen">
+      <div class="success-icon">
+        <svg viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="30" fill="#F5A623" opacity="0.15"/>
+          <circle cx="32" cy="32" r="24" fill="#F5A623" opacity="0.3"/>
+          <path d="M24 32l5 5 11-11" stroke="#FFB830" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <p class="success-text amber">Member Terverifikasi</p>
+      <p class="success-sub">Silakan lewat — palang terbuka</p>
+      <p class="success-plate" id="member-plate">B 1234 ABC</p>
+    </div>
+
+    <!-- State: error -->
+    <div id="screen-error" class="screen">
+      <div class="error-icon">
+        <svg viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="30" fill="#EF4444" opacity="0.2"/>
+          <path d="M22 22l20 20M42 22l-20 20" stroke="#FF3B3B" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <p class="error-text">Terjadi Kesalahan</p>
+      <p class="error-sub" id="error-message">Hubungi petugas</p>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

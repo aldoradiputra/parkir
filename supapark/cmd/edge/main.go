@@ -1,0 +1,53 @@
+package main
+
+import (
+	"context"
+	"io/fs"
+	"log/slog"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/aldoradiputra/supapark/internal/edge"
+	"github.com/aldoradiputra/supapark/web"
+)
+
+func main() {
+	level := slog.LevelInfo
+	if os.Getenv("EDGE_DEBUG") == "true" {
+		level = slog.LevelDebug
+	}
+
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: level,
+	}))
+
+	cfg := edge.LoadConfig()
+
+	exitScreenFS, err := fs.Sub(web.ExitScreenFS, "exit-screen")
+	if err != nil {
+		logger.Error("prepare exit-screen fs", "err", err)
+		os.Exit(1)
+	}
+
+	srv, err := edge.NewServer(cfg, exitScreenFS, logger)
+	if err != nil {
+		logger.Error("create edge server", "err", err)
+		os.Exit(1)
+	}
+
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+
+	go func() {
+		if err := srv.Start(ctx); err != nil {
+			logger.Error("edge server stopped", "err", err)
+			cancel()
+		}
+	}()
+
+	<-ctx.Done()
+	logger.Info("shutting down edge...")
+	srv.Shutdown()
+	logger.Info("goodbye")
+}

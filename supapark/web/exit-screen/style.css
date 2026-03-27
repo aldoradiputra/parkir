@@ -1,0 +1,242 @@
+/* SupaPark Exit Screen — Booth-scale dark theme */
+/* Ultra-high contrast: pure black bg, pure white text, neon accents */
+
+:root {
+  --bg: #000000;
+  --text: #FFFFFF;
+  --text-secondary: #A3A39A;
+  --amber: #F5A623;
+  --green: #00FF88;
+  --red: #FF3B3B;
+  --surface: #111111;
+  --font-ui: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Screen states */
+.screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 24px;
+  padding: 40px;
+  width: 100%;
+  height: 100%;
+}
+.screen.active {
+  display: flex;
+}
+
+/* Logo lockup */
+.logo-lockup {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.logo-lockup .logo-icon {
+  width: 80px;
+  height: 80px;
+}
+.logo-lockup.small .logo-icon {
+  width: 48px;
+  height: 48px;
+}
+.logo-text {
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: var(--text);
+}
+.logo-lockup.small .logo-text {
+  font-size: 28px;
+  letter-spacing: 2px;
+}
+
+/* Status text */
+.status-text {
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+.status-text.pulsing {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Skeleton loaders */
+.skeleton-plate {
+  width: 320px;
+  height: 64px;
+  background: var(--surface);
+  border-radius: 12px;
+  animation: shimmer 1.5s infinite;
+}
+.skeleton-qr {
+  width: 240px;
+  height: 240px;
+  background: var(--surface);
+  border-radius: 16px;
+  animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+/* Payment screen */
+.payment-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.plate-number {
+  font-family: var(--font-mono);
+  font-size: 56px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: var(--text);
+}
+.vehicle-badge {
+  font-size: 18px;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 20px;
+  background: rgba(245, 166, 35, 0.15);
+  color: var(--amber);
+  text-transform: uppercase;
+}
+
+.fee-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fee-label {
+  font-size: 20px;
+  color: var(--text-secondary);
+}
+.fee-amount {
+  font-family: var(--font-mono);
+  font-size: 72px;
+  font-weight: 700;
+  color: var(--amber);
+}
+.duration-text {
+  font-size: 18px;
+  color: var(--text-secondary);
+}
+
+.qr-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.qr-container {
+  background: #FFFFFF;
+  padding: 20px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 280px;
+  min-height: 280px;
+}
+.qr-container canvas,
+.qr-container img {
+  width: 240px;
+  height: 240px;
+}
+.qr-instruction {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.timer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.timer-label {
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+.timer {
+  font-family: var(--font-mono);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--red);
+}
+
+/* Success / member screens */
+.success-icon,
+.error-icon {
+  width: 120px;
+  height: 120px;
+}
+.success-icon svg,
+.error-icon svg {
+  width: 100%;
+  height: 100%;
+}
+.success-text {
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--green);
+}
+.success-text.amber {
+  color: var(--amber);
+}
+.success-sub {
+  font-size: 28px;
+  color: var(--text-secondary);
+}
+.success-plate {
+  font-family: var(--font-mono);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 8px;
+}
+
+/* Error screen */
+.error-text {
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--red);
+}
+.error-sub {
+  font-size: 24px;
+  color: var(--text-secondary);
+}

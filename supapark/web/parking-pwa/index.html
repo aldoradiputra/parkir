@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0A0A0A">
+  <title>SupaPark</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <header class="app-header">
+      <div class="logo-lockup">
+        <svg viewBox="0 0 48 48" fill="none" class="logo-icon">
+          <rect x="10" y="8" width="10" height="32" rx="3" fill="#F5A623"/>
+          <path d="M20 8h10a10 10 0 0 1 0 20H20" stroke="#F5A623" stroke-width="8" stroke-linecap="round" fill="none"/>
+        </svg>
+        <span class="logo-text">SUPAPARK</span>
+      </div>
+    </header>
+
+    <!-- Link Plate Screen -->
+    <section id="screen-link" class="screen active">
+      <h2 class="screen-title">Hubungkan Kendaraan</h2>
+      <p class="screen-desc">Masukkan plat nomor dan nomor HP untuk menerima notifikasi dan melakukan pembayaran dari HP.</p>
+      <form id="link-form" class="form">
+        <div class="input-group">
+          <label for="input-plate">Plat Nomor</label>
+          <input type="text" id="input-plate" placeholder="B 1234 ABC" autocomplete="off" class="input mono">
+        </div>
+        <div class="input-group">
+          <label for="input-phone">Nomor HP</label>
+          <input type="tel" id="input-phone" placeholder="08xxxxxxxxxx" autocomplete="tel" class="input">
+        </div>
+        <button type="submit" class="btn-primary" id="btn-link">Hubungkan</button>
+      </form>
+      <div id="link-result" class="result hidden"></div>
+      <hr class="divider">
+      <button class="btn-secondary" id="btn-check-session">Cek Sesi Parkir</button>
+    </section>
+
+    <!-- Session Screen -->
+    <section id="screen-session" class="screen">
+      <h2 class="screen-title">Sesi Parkir Aktif</h2>
+      <div id="session-info" class="session-card">
+        <div class="session-row">
+          <span class="session-label">Plat Nomor</span>
+          <span class="session-value mono" id="session-plate">-</span>
+        </div>
+        <div class="session-row">
+          <span class="session-label">Masuk</span>
+          <span class="session-value" id="session-entry">-</span>
+        </div>
+        <div class="session-row">
+          <span class="session-label">Durasi</span>
+          <span class="session-value" id="session-duration">-</span>
+        </div>
+        <div class="session-row">
+          <span class="session-label">Estimasi Biaya</span>
+          <span class="session-value amber" id="session-fee">-</span>
+        </div>
+        <div class="session-row">
+          <span class="session-label">Status</span>
+          <span class="session-value" id="session-status">-</span>
+        </div>
+      </div>
+      <button class="btn-primary" id="btn-prepay">Bayar Sekarang</button>
+      <button class="btn-secondary" id="btn-back-link">Kembali</button>
+    </section>
+
+    <!-- Payment Screen -->
+    <section id="screen-pay" class="screen">
+      <h2 class="screen-title">Pembayaran QRIS</h2>
+      <div class="qr-container" id="pay-qr-container">
+        <div class="skeleton-qr"></div>
+      </div>
+      <p class="pay-amount" id="pay-amount">Rp 0</p>
+      <p class="pay-instruction">Scan QR code menggunakan aplikasi e-wallet Anda</p>
+      <p class="pay-status" id="pay-status">Menunggu pembayaran...</p>
+      <button class="btn-secondary" id="btn-back-session">Kembali</button>
+    </section>
+
+    <div id="toast" class="toast hidden"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: supapark
+      POSTGRES_USER: supapark
+      POSTGRES_PASSWORD: supapark
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./migrations/000001_init.up.sql:/docker-entrypoint-initdb.d/001_init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U supapark"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  cloud:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      DATABASE_URL: "postgres://supapark:supapark@postgres:5432/supapark?sslmode=disable"
+      JWT_SECRET: "supapark-dev-secret-change-me"
+      WEBHOOK_SECRET: "webhook-dev-secret"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:
