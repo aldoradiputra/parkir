@@ -83,9 +83,17 @@ func (l *Loop) Run(ctx context.Context) {
 }
 
 func (l *Loop) detect(ctx context.Context) {
+	// For exit lanes, show scanning animation before ALPR runs
+	if l.cfg.LaneMode == "exit" {
+		l.sse.Broadcast(pwa.Event{Type: "scanning"})
+	}
+
 	result, err := l.alpr.Recognize(ctx)
 	if err != nil {
 		l.logger.Debug("no plate detected", "err", err)
+		if l.cfg.LaneMode == "exit" {
+			l.sse.Broadcast(pwa.Event{Type: "idle"})
+		}
 		return
 	}
 
@@ -152,6 +160,19 @@ func (l *Loop) cloudEntry(ctx context.Context, plate string, result *alpr.PlateR
 		return fmt.Errorf("cloud entry returned %d", resp.StatusCode)
 	}
 
+	// Cache phone from cloud response for offline exit notifications
+	var entryResp struct {
+		Phone *string `json:"phone"`
+	}
+	json.NewDecoder(resp.Body).Decode(&entryResp)
+	if entryResp.Phone != nil && *entryResp.Phone != "" {
+		if err := l.store.CachePhone(plate, *entryResp.Phone); err != nil {
+			l.logger.Warn("failed to cache phone", "plate", plate, "err", err)
+		} else {
+			l.logger.Debug("cached phone for plate", "plate", plate)
+		}
+	}
+
 	l.logger.Info("cloud entry reported", "plate", plate)
 	return nil
 }
@@ -205,7 +226,7 @@ func (l *Loop) cloudExit(ctx context.Context, plate string, result *alpr.PlateRe
 	}
 	json.NewDecoder(resp.Body).Decode(&sessionResp)
 
-	// Report exit to cloud
+	// Report exit to cloud (now includes inline QRIS if payment needed)
 	exitBody, _ := json.Marshal(map[string]interface{}{
 		"session_id": sessionResp.ID,
 		"lane_id":    l.cfg.LaneID,
@@ -225,16 +246,21 @@ func (l *Loop) cloudExit(ctx context.Context, plate string, result *alpr.PlateRe
 	defer exitResp.Body.Close()
 
 	var exitData struct {
-		IsMember      bool   `json:"is_member"`
-		TariffAmount  int    `json:"tariff_amount"`
-		PaymentStatus string `json:"payment_status"`
+		IsMember      bool    `json:"is_member"`
+		TariffAmount  int     `json:"tariff_amount"`
+		PaymentStatus string  `json:"payment_status"`
+		QRString      *string `json:"qr_string"`
 	}
 	json.NewDecoder(exitResp.Body).Decode(&exitData)
 
 	// If member or already paid → open gate
 	if exitData.IsMember || exitData.PaymentStatus == "paid" {
+		eventType := "success"
+		if exitData.IsMember {
+			eventType = "member"
+		}
 		l.sse.Broadcast(pwa.Event{
-			Type:  "success",
+			Type:  eventType,
 			Plate: plate,
 			Fee:   exitData.TariffAmount,
 		})
@@ -242,7 +268,7 @@ func (l *Loop) cloudExit(ctx context.Context, plate string, result *alpr.PlateRe
 		return
 	}
 
-	// Otherwise show payment screen
+	// Show payment screen with plate + fee immediately
 	l.sse.Broadcast(pwa.Event{
 		Type:      "payment",
 		Plate:     plate,
@@ -250,7 +276,18 @@ func (l *Loop) cloudExit(ctx context.Context, plate string, result *alpr.PlateRe
 		SessionID: sessionResp.ID,
 	})
 
-	// Request QRIS
+	// If inline QRIS was returned, use it directly (faster: no extra HTTP call)
+	if exitData.QRString != nil && *exitData.QRString != "" {
+		l.sse.Broadcast(pwa.Event{
+			Type:     "qris",
+			Plate:    plate,
+			Fee:      exitData.TariffAmount,
+			QRString: *exitData.QRString,
+		})
+		return
+	}
+
+	// Fallback: request QRIS separately (backward compat)
 	qrisBody, _ := json.Marshal(map[string]interface{}{
 		"session_id": sessionResp.ID,
 		"amount":     exitData.TariffAmount,
@@ -300,23 +337,56 @@ func (l *Loop) localExit(ctx context.Context, plate string, _ *alpr.PlateResult)
 		sess.Fee = hours * 5000
 	}
 	sess.PaymentStatus = "pending"
+	sess.NotifyOnSync = true
+
+	// Check cached phone for notification
+	phone := l.store.GetCachedPhone(plate)
+	hasPhone := phone != ""
+	if hasPhone {
+		sess.Phone = phone
+	}
 
 	if err := l.store.SaveSession(sess); err != nil {
 		l.logger.Error("save local exit", "err", err)
 	}
 
+	// Build message based on phone availability
+	msg := "Palang terbuka — tagihan tercatat"
+	if hasPhone {
+		msg = fmt.Sprintf("Palang terbuka — tagihan dikirim ke %s", maskPhone(phone))
+	}
+
 	l.sse.Broadcast(pwa.Event{
-		Type:      "payment",
-		Plate:     plate,
-		Fee:       sess.Fee,
-		SessionID: sess.ID,
-		Message:   "Offline mode - bayar di kasir",
+		Type:     "offline_exit",
+		Plate:    plate,
+		Fee:      sess.Fee,
+		Message:  msg,
+		HasPhone: hasPhone,
 	})
 
-	// In offline mode, open gate after showing fee (operator handles payment)
-	time.AfterFunc(10*time.Second, func() {
+	// No-operator: open gate after 3s display time
+	time.AfterFunc(3*time.Second, func() {
 		l.gate.Open(ctx)
+		// Reset to idle after gate opens
+		time.AfterFunc(2*time.Second, func() {
+			l.sse.Broadcast(pwa.Event{Type: "idle"})
+		})
 	})
+
+	l.logger.Info("offline exit processed",
+		"plate", plate,
+		"fee", sess.Fee,
+		"has_phone", hasPhone,
+		"notify_on_sync", true,
+	)
+}
+
+// maskPhone masks a phone number for display: 08123456789 → 0812****789
+func maskPhone(phone string) string {
+	if len(phone) <= 6 {
+		return phone
+	}
+	return phone[:4] + "****" + phone[len(phone)-3:]
 }
 
 func normalizePlate(plate string) string {

@@ -1,5 +1,5 @@
 bin/
-cloud
-edge
+/cloud
+/edge
 *.db
 .env

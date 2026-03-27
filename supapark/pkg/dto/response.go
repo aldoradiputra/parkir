@@ -7,11 +7,12 @@ import (
 )
 
 type EntryResponse struct {
-	SessionID   string          `json:"session_id"`
-	Plate       string          `json:"plate"`
+	SessionID   string            `json:"session_id"`
+	Plate       string            `json:"plate"`
 	VehicleType model.VehicleType `json:"vehicle_type"`
-	IsMember    bool            `json:"is_member"`
-	EntryTime   time.Time       `json:"entry_time"`
+	IsMember    bool              `json:"is_member"`
+	EntryTime   time.Time         `json:"entry_time"`
+	Phone       *string           `json:"phone,omitempty"` // so edge can cache for offline notifications
 }
 
 type ExitResponse struct {
@@ -24,6 +25,9 @@ type ExitResponse struct {
 	TariffAmount    int                 `json:"tariff_amount"`
 	IsMember        bool                `json:"is_member"`
 	PaymentStatus   model.PaymentStatus `json:"payment_status"`
+	QRString        *string             `json:"qr_string,omitempty"`  // inline QRIS for faster display
+	QRURL           *string             `json:"qr_url,omitempty"`
+	PaymentID       *string             `json:"payment_id,omitempty"`
 }
 
 type CreateQRISResponse struct {

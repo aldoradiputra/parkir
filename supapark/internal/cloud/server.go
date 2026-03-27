@@ -71,8 +71,8 @@ func (s *Server) registerRoutes() {
 	var qrisProvider service.QRISProvider = service.NewStubQRIS(s.logger)
 	notifier := service.NewStubNotifier(s.logger)
 
-	sessionSvc := service.NewSessionService(sessionRepo, vehicleRepo, memberRepo, tariffRepo, s.logger)
 	paymentSvc := service.NewPaymentService(paymentRepo, sessionRepo, qrisProvider, notifier, s.hub, s.logger)
+	sessionSvc := service.NewSessionService(sessionRepo, vehicleRepo, memberRepo, tariffRepo, paymentSvc, s.logger)
 
 	// Handlers
 	healthH := handler.NewHealthHandler()
@@ -80,6 +80,7 @@ func (s *Server) registerRoutes() {
 	sessionH := handler.NewSessionHandler(sessionSvc, s.logger)
 	paymentH := handler.NewPaymentHandler(paymentSvc, s.cfg.WebhookSecret, s.logger)
 	vehicleH := handler.NewVehicleHandler(vehicleRepo, sessionRepo, paymentSvc, s.logger)
+	syncH := handler.NewSyncHandler(s.logger)
 
 	// Auth middleware
 	jwtAuth := middleware.JWTAuth(s.cfg.JWTSecret)
@@ -105,6 +106,11 @@ func (s *Server) registerRoutes() {
 	})
 
 	r.Post("/api/v1/webhooks/qris", paymentH.HandleWebhook)
+
+	r.Route("/api/v1/sync", func(r chi.Router) {
+		r.Use(laneAuth)
+		r.Post("/sessions", syncH.HandleSessionSync)
+	})
 
 	r.Route("/api/v1/vehicles", func(r chi.Router) {
 		r.Post("/link", vehicleH.LinkPhone)

@@ -23,6 +23,21 @@
       <p class="status-text">Menunggu kendaraan...</p>
     </div>
 
+    <!-- State: scanning -->
+    <div id="screen-scanning" class="screen">
+      <div class="logo-lockup small">
+        <svg viewBox="0 0 48 48" fill="none" class="logo-icon">
+          <rect x="10" y="8" width="10" height="32" rx="3" fill="#F5A623"/>
+          <path d="M20 8h10a10 10 0 0 1 0 20H20" stroke="#F5A623" stroke-width="8" stroke-linecap="round" fill="none"/>
+        </svg>
+        <span class="logo-text">SUPAPARK</span>
+      </div>
+      <div class="scan-area">
+        <div class="scan-line"></div>
+      </div>
+      <p class="status-text pulsing">Memindai kendaraan...</p>
+    </div>
+
     <!-- State: detecting -->
     <div id="screen-detecting" class="screen">
       <div class="logo-lockup small">
@@ -85,6 +100,23 @@
       <p class="success-text amber">Member Terverifikasi</p>
       <p class="success-sub">Silakan lewat — palang terbuka</p>
       <p class="success-plate" id="member-plate">B 1234 ABC</p>
+    </div>
+
+    <!-- State: offline_exit -->
+    <div id="screen-offline-exit" class="screen">
+      <div class="success-icon">
+        <svg viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="30" fill="#22C55E" opacity="0.15"/>
+          <circle cx="32" cy="32" r="24" fill="#22C55E" opacity="0.3"/>
+          <path d="M16 32h32M32 20v24" stroke="#00FF88" stroke-width="4" stroke-linecap="round"/>
+          <path d="M24 24l16 16M40 24l-16 16" stroke="#00FF88" stroke-width="2" stroke-linecap="round" opacity="0"/>
+          <path d="M20 32l8 8 16-16" stroke="#00FF88" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <p class="plate-number" id="offline-plate">B 1234 ABC</p>
+      <p class="fee-amount offline-fee" id="offline-fee">Rp 5.000</p>
+      <p class="success-text">Palang Terbuka</p>
+      <p class="offline-message" id="offline-message">Tagihan dikirim via notifikasi</p>
     </div>
 
     <!-- State: error -->

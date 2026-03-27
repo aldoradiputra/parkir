@@ -113,7 +113,7 @@ func (e *Engine) PushSessions(ctx context.Context) error {
 		return fmt.Errorf("marshal sessions: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, e.cloudURL+"/api/v1/sessions/sync", bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, e.cloudURL+"/api/v1/sync/sessions", bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("build sync request: %w", err)
 	}

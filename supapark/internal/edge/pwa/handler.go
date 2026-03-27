@@ -10,7 +10,8 @@ import (
 
 // Event represents a server-sent event for the exit screen PWA.
 type Event struct {
-	Type      string `json:"type"`                // "idle", "detecting", "payment", "qris", "success", "member", "error"
+	Type      string `json:"type"`                // "idle", "scanning", "detecting", "payment", "qris", "success", "member", "offline_exit", "error"
+	HasPhone  bool   `json:"has_phone,omitempty"` // used by offline_exit to show notification message
 	Plate     string `json:"plate,omitempty"`
 	Fee       int    `json:"fee,omitempty"`
 	SessionID string `json:"session_id,omitempty"`

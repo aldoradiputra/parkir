@@ -9,8 +9,9 @@ import (
 )
 
 var (
-	bucketSessions = []byte("sessions")
-	bucketPlateIdx = []byte("plate_index") // plate -> session ID (active only)
+	bucketSessions   = []byte("sessions")
+	bucketPlateIdx   = []byte("plate_index")   // plate -> session ID (active only)
+	bucketPhoneCache = []byte("phone_cache")    // plate -> phone (cached from cloud on entry)
 )
 
 // EdgeSession represents a parking session stored locally on the edge device.
@@ -24,6 +25,8 @@ type EdgeSession struct {
 	PaymentStatus  string    `json:"payment_status"` // "pending", "paid", "none"
 	Synced         bool      `json:"synced"`
 	CloudSessionID string    `json:"cloud_session_id,omitempty"`
+	NotifyOnSync   bool     `json:"notify_on_sync,omitempty"`
+	Phone          string   `json:"phone,omitempty"` // cached from cloud on entry
 }
 
 // Store provides BoltDB-backed persistence for edge sessions.
@@ -44,6 +47,9 @@ func NewStore(path string) (*Store, error) {
 			return err
 		}
 		if _, err := tx.CreateBucketIfNotExists(bucketPlateIdx); err != nil {
+			return err
+		}
+		if _, err := tx.CreateBucketIfNotExists(bucketPhoneCache); err != nil {
 			return err
 		}
 		return nil
@@ -151,6 +157,26 @@ func (s *Store) GetUnsynced(limit int) ([]*EdgeSession, error) {
 		return nil, err
 	}
 	return results, nil
+}
+
+// CachePhone stores a plate-to-phone mapping for offline exit notifications.
+func (s *Store) CachePhone(plate, phone string) error {
+	return s.db.Update(func(tx *bbolt.Tx) error {
+		return tx.Bucket(bucketPhoneCache).Put([]byte(plate), []byte(phone))
+	})
+}
+
+// GetCachedPhone retrieves the cached phone number for a plate, or empty string.
+func (s *Store) GetCachedPhone(plate string) string {
+	var phone string
+	s.db.View(func(tx *bbolt.Tx) error {
+		v := tx.Bucket(bucketPhoneCache).Get([]byte(plate))
+		if v != nil {
+			phone = string(v)
+		}
+		return nil
+	})
+	return phone
 }
 
 // MarkSynced marks the given session IDs as synced.

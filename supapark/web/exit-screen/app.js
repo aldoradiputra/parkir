@@ -4,10 +4,12 @@
 
   const screens = {
     idle: document.getElementById('screen-idle'),
+    scanning: document.getElementById('screen-scanning'),
     detecting: document.getElementById('screen-detecting'),
     payment: document.getElementById('screen-payment'),
     success: document.getElementById('screen-success'),
     member: document.getElementById('screen-member'),
+    offline_exit: document.getElementById('screen-offline-exit'),
     error: document.getElementById('screen-error'),
   };
 
@@ -20,6 +22,9 @@
     timer: document.getElementById('timer-display'),
     successPlate: document.getElementById('success-plate'),
     memberPlate: document.getElementById('member-plate'),
+    offlinePlate: document.getElementById('offline-plate'),
+    offlineFee: document.getElementById('offline-fee'),
+    offlineMessage: document.getElementById('offline-message'),
     errorMessage: document.getElementById('error-message'),
   };
 
@@ -97,6 +102,10 @@
         showScreen('idle');
         break;
 
+      case 'scanning':
+        showScreen('scanning');
+        break;
+
       case 'detecting':
         showScreen('detecting');
         break;
@@ -132,6 +141,19 @@
         els.memberPlate.textContent = formatPlate(event.plate || '');
         showScreen('member');
         setTimeout(() => showScreen('idle'), 8000);
+        break;
+
+      case 'offline_exit':
+        clearInterval(timerInterval);
+        els.offlinePlate.textContent = formatPlate(event.plate || '');
+        els.offlineFee.textContent = formatRupiah(event.fee || 0);
+        if (event.has_phone) {
+          els.offlineMessage.textContent = event.message || 'Tagihan dikirim via notifikasi';
+        } else {
+          els.offlineMessage.textContent = event.message || 'Tagihan tercatat';
+        }
+        showScreen('offline_exit');
+        setTimeout(() => showScreen('idle'), 5000);
         break;
 
       case 'error':

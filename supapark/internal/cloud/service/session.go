@@ -40,13 +40,19 @@ type TariffRepo interface {
 	FindByLocationAndType(ctx context.Context, locationID string, vehicleType model.VehicleType) (*model.TariffConfig, error)
 }
 
+// QRISCreator creates QRIS payment codes inline during exit processing.
+type QRISCreator interface {
+	CreateQRIS(ctx context.Context, sessionID string, amount int) (*dto.CreateQRISResponse, error)
+}
+
 // SessionService implements parking session business logic.
 type SessionService struct {
-	sessionRepo SessionRepo
-	vehicleRepo VehicleRepo
-	memberRepo  MemberRepo
-	tariffRepo  TariffRepo
-	logger      *slog.Logger
+	sessionRepo  SessionRepo
+	vehicleRepo  VehicleRepo
+	memberRepo   MemberRepo
+	tariffRepo   TariffRepo
+	qrisCreator  QRISCreator
+	logger       *slog.Logger
 }
 
 // NewSessionService creates a new SessionService with the required dependencies.
@@ -55,14 +61,16 @@ func NewSessionService(
 	vehicleRepo VehicleRepo,
 	memberRepo MemberRepo,
 	tariffRepo TariffRepo,
+	qrisCreator QRISCreator,
 	logger *slog.Logger,
 ) *SessionService {
 	return &SessionService{
-		sessionRepo: sessionRepo,
-		vehicleRepo: vehicleRepo,
-		memberRepo:  memberRepo,
-		tariffRepo:  tariffRepo,
-		logger:      logger,
+		sessionRepo:  sessionRepo,
+		vehicleRepo:  vehicleRepo,
+		memberRepo:   memberRepo,
+		tariffRepo:   tariffRepo,
+		qrisCreator:  qrisCreator,
+		logger:       logger,
 	}
 }
 
@@ -116,13 +124,20 @@ func (s *SessionService) ReportEntry(ctx context.Context, req dto.EntryRequest) 
 		"is_member", isMember,
 	)
 
-	return &dto.EntryResponse{
+	resp := &dto.EntryResponse{
 		SessionID:   session.ID,
 		Plate:       session.Plate,
 		VehicleType: session.VehicleType,
 		IsMember:    session.IsMember,
 		EntryTime:   session.EntryTime,
-	}, nil
+	}
+
+	// Include phone so edge can cache it for offline exit notifications
+	if vehicle.Phone != nil && *vehicle.Phone != "" {
+		resp.Phone = vehicle.Phone
+	}
+
+	return resp, nil
 }
 
 // ReportExit processes a vehicle exit, calculates the tariff, and updates the
@@ -180,7 +195,7 @@ func (s *SessionService) ReportExit(ctx context.Context, req dto.ExitRequest) (*
 		"is_member", session.IsMember,
 	)
 
-	return &dto.ExitResponse{
+	exitResp := &dto.ExitResponse{
 		SessionID:       session.ID,
 		Plate:           session.Plate,
 		VehicleType:     session.VehicleType,
@@ -190,7 +205,21 @@ func (s *SessionService) ReportExit(ctx context.Context, req dto.ExitRequest) (*
 		TariffAmount:    tariffAmount,
 		IsMember:        session.IsMember,
 		PaymentStatus:   session.PaymentStatus,
-	}, nil
+	}
+
+	// Inline QRIS generation: if payment is needed, create QR code now
+	if !session.IsMember && session.PaymentStatus != model.PaymentStatusPaid && tariffAmount > 0 && s.qrisCreator != nil {
+		qrisResp, err := s.qrisCreator.CreateQRIS(ctx, session.ID, tariffAmount)
+		if err != nil {
+			s.logger.Warn("inline QRIS creation failed, edge will fall back", "session_id", session.ID, "error", err)
+		} else {
+			exitResp.QRString = &qrisResp.QRString
+			exitResp.QRURL = qrisResp.QRURL
+			exitResp.PaymentID = &qrisResp.PaymentID
+		}
+	}
+
+	return exitResp, nil
 }
 
 // CalculateTariff computes the parking fee based on tariff configuration and
