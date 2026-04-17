@@ -132,9 +132,13 @@ func (s *SessionService) ReportEntry(ctx context.Context, req dto.EntryRequest) 
 		EntryTime:   session.EntryTime,
 	}
 
-	// Include phone so edge can cache it for offline exit notifications
 	if vehicle.Phone != nil && *vehicle.Phone != "" {
 		resp.Phone = vehicle.Phone
+	}
+
+	if tariff, err := s.tariffRepo.FindByLocationAndType(ctx, req.LocationID, req.VehicleType); err == nil && tariff != nil {
+		info := FormatTariffInfo(tariff)
+		resp.TariffInfo = &info
 	}
 
 	return resp, nil
@@ -253,6 +257,22 @@ func (s *SessionService) List(ctx context.Context, locationID string, limit, off
 		return nil, 0, fmt.Errorf("list sessions: %w", err)
 	}
 	return sessions, total, nil
+}
+
+// FormatTariffInfo returns a human-readable tariff string for the entry screen.
+func FormatTariffInfo(t *model.TariffConfig) string {
+	s := fmt.Sprintf("Rp %s/jam", formatIDR(t.FirstHourRate))
+	if t.MaxDailyRate != nil {
+		s += fmt.Sprintf(", maks Rp %s/hari", formatIDR(*t.MaxDailyRate))
+	}
+	return s
+}
+
+func formatIDR(amount int) string {
+	if amount >= 1000 {
+		return fmt.Sprintf("%d.%03d", amount/1000, amount%1000)
+	}
+	return fmt.Sprintf("%d", amount)
 }
 
 // NormalizePlate converts a license plate to a canonical form by uppercasing

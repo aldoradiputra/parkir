@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#000000">
+  <title>SupaPark — Entry</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- State: idle -->
+    <div id="screen-idle" class="screen active">
+      <div class="logo-lockup">
+        <svg viewBox="0 0 48 48" fill="none" class="logo-icon">
+          <rect x="10" y="8" width="10" height="32" rx="3" fill="#F5A623"/>
+          <path d="M20 8h10a10 10 0 0 1 0 20H20" stroke="#F5A623" stroke-width="8" stroke-linecap="round" fill="none"/>
+        </svg>
+        <span class="logo-text">SUPAPARK</span>
+      </div>
+      <p class="status-text">Menunggu kendaraan...</p>
+    </div>
+
+    <!-- State: scanning -->
+    <div id="screen-scanning" class="screen">
+      <div class="logo-lockup small">
+        <svg viewBox="0 0 48 48" fill="none" class="logo-icon">
+          <rect x="10" y="8" width="10" height="32" rx="3" fill="#F5A623"/>
+          <path d="M20 8h10a10 10 0 0 1 0 20H20" stroke="#F5A623" stroke-width="8" stroke-linecap="round" fill="none"/>
+        </svg>
+        <span class="logo-text">SUPAPARK</span>
+      </div>
+      <div class="scan-area">
+        <div class="scan-line"></div>
+      </div>
+      <p class="status-text pulsing">Memindai kendaraan...</p>
+    </div>
+
+    <!-- State: entry_success -->
+    <div id="screen-entry-success" class="screen">
+      <div class="entry-header">
+        <div class="gate-icon">
+          <svg viewBox="0 0 64 64" fill="none">
+            <circle cx="32" cy="32" r="30" fill="#22C55E" opacity="0.15"/>
+            <circle cx="32" cy="32" r="24" fill="#22C55E" opacity="0.3"/>
+            <path d="M20 32l8 8 16-16" stroke="#00FF88" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="entry-title-col">
+          <p class="entry-label">Selamat Datang!</p>
+          <p class="entry-sub">Palang terbuka — silakan masuk</p>
+        </div>
+      </div>
+
+      <div class="plate-row">
+        <span class="plate-number" id="entry-plate">B 1234 ABC</span>
+        <span class="vehicle-badge" id="entry-vehicle-type">Mobil</span>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Waktu Masuk</span>
+          <span class="info-value mono" id="entry-time">14:32:05</span>
+        </div>
+        <div class="info-item" id="tariff-item">
+          <span class="info-label">Tarif</span>
+          <span class="info-value" id="entry-tariff">Rp 5.000/jam</span>
+        </div>
+        <div class="info-item" id="slots-item">
+          <span class="info-label">Sisa Slot</span>
+          <span class="info-value" id="entry-slots">— slot</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- State: entry_member -->
+    <div id="screen-entry-member" class="screen">
+      <div class="entry-header">
+        <div class="gate-icon">
+          <svg viewBox="0 0 64 64" fill="none">
+            <circle cx="32" cy="32" r="30" fill="#F5A623" opacity="0.15"/>
+            <circle cx="32" cy="32" r="24" fill="#F5A623" opacity="0.3"/>
+            <path d="M20 32l8 8 16-16" stroke="#FFB830" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="entry-title-col">
+          <div class="member-badge-row">
+            <span class="member-badge">MEMBER</span>
+          </div>
+          <p class="entry-sub">Palang terbuka — silakan masuk</p>
+        </div>
+      </div>
+
+      <div class="plate-row">
+        <span class="plate-number" id="member-plate">B 1234 ABC</span>
+        <span class="vehicle-badge" id="member-vehicle-type">Mobil</span>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Waktu Masuk</span>
+          <span class="info-value mono" id="member-time">14:32:05</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Status</span>
+          <span class="info-value amber">Parkir Gratis</span>
+        </div>
+        <div class="info-item" id="member-slots-item">
+          <span class="info-label">Sisa Slot</span>
+          <span class="info-value" id="member-slots">— slot</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- State: error -->
+    <div id="screen-error" class="screen">
+      <div class="error-icon">
+        <svg viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="30" fill="#EF4444" opacity="0.2"/>
+          <path d="M22 22l20 20M42 22l-20 20" stroke="#FF3B3B" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <p class="error-text">Terjadi Kesalahan</p>
+      <p class="error-sub" id="error-message">Hubungi petugas</p>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -7,12 +7,14 @@ import (
 )
 
 type EntryResponse struct {
-	SessionID   string            `json:"session_id"`
-	Plate       string            `json:"plate"`
-	VehicleType model.VehicleType `json:"vehicle_type"`
-	IsMember    bool              `json:"is_member"`
-	EntryTime   time.Time         `json:"entry_time"`
-	Phone       *string           `json:"phone,omitempty"` // so edge can cache for offline notifications
+	SessionID      string            `json:"session_id"`
+	Plate          string            `json:"plate"`
+	VehicleType    model.VehicleType `json:"vehicle_type"`
+	IsMember       bool              `json:"is_member"`
+	EntryTime      time.Time         `json:"entry_time"`
+	Phone          *string           `json:"phone,omitempty"`
+	TariffInfo     *string           `json:"tariff_info,omitempty"`
+	SlotsAvailable *int              `json:"slots_available,omitempty"`
 }
 
 type ExitResponse struct {

@@ -83,17 +83,13 @@ func (l *Loop) Run(ctx context.Context) {
 }
 
 func (l *Loop) detect(ctx context.Context) {
-	// For exit lanes, show scanning animation before ALPR runs
-	if l.cfg.LaneMode == "exit" {
-		l.sse.Broadcast(pwa.Event{Type: "scanning"})
-	}
+	// Show scanning animation before ALPR runs (both entry and exit)
+	l.sse.Broadcast(pwa.Event{Type: "scanning"})
 
 	result, err := l.alpr.Recognize(ctx)
 	if err != nil {
 		l.logger.Debug("no plate detected", "err", err)
-		if l.cfg.LaneMode == "exit" {
-			l.sse.Broadcast(pwa.Event{Type: "idle"})
-		}
+		l.sse.Broadcast(pwa.Event{Type: "idle"})
 		return
 	}
 
@@ -109,20 +105,31 @@ func (l *Loop) detect(ctx context.Context) {
 }
 
 func (l *Loop) handleEntry(ctx context.Context, plate string, result *alpr.PlateResult) {
-	// Try cloud first
+	var entryEvt pwa.Event
+
 	if l.sync.IsOnline() {
-		if err := l.cloudEntry(ctx, plate, result); err != nil {
+		evt, err := l.cloudEntry(ctx, plate, result)
+		if err != nil {
 			l.logger.Warn("cloud entry failed, falling back to local", "err", err)
-			l.localEntry(ctx, plate, result)
+			evt = l.localEntry(ctx, plate, result)
 		}
+		entryEvt = evt
 	} else {
-		l.localEntry(ctx, plate, result)
+		entryEvt = l.localEntry(ctx, plate, result)
 	}
 
 	// Always open gate on entry
 	if err := l.gate.Open(ctx); err != nil {
 		l.logger.Error("gate open failed", "err", err)
 	}
+
+	// Broadcast entry confirmation to screen
+	l.sse.Broadcast(entryEvt)
+
+	// Reset to idle after 3s display
+	time.AfterFunc(3*time.Second, func() {
+		l.sse.Broadcast(pwa.Event{Type: "idle"})
+	})
 }
 
 func (l *Loop) handleExit(ctx context.Context, plate string, result *alpr.PlateResult) {
@@ -135,7 +142,7 @@ func (l *Loop) handleExit(ctx context.Context, plate string, result *alpr.PlateR
 	}
 }
 
-func (l *Loop) cloudEntry(ctx context.Context, plate string, result *alpr.PlateResult) error {
+func (l *Loop) cloudEntry(ctx context.Context, plate string, result *alpr.PlateResult) (pwa.Event, error) {
 	body, _ := json.Marshal(map[string]interface{}{
 		"location_id":  l.cfg.LocationID,
 		"lane_id":      l.cfg.LaneID,
@@ -145,26 +152,32 @@ func (l *Loop) cloudEntry(ctx context.Context, plate string, result *alpr.PlateR
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, l.cfg.CloudURL+"/api/v1/sessions/entry", bytes.NewReader(body))
 	if err != nil {
-		return err
+		return pwa.Event{}, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-API-Key", l.cfg.APIKey)
 
 	resp, err := l.httpClient.Do(req)
 	if err != nil {
-		return err
+		return pwa.Event{}, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
-		return fmt.Errorf("cloud entry returned %d", resp.StatusCode)
+		return pwa.Event{}, fmt.Errorf("cloud entry returned %d", resp.StatusCode)
 	}
 
-	// Cache phone from cloud response for offline exit notifications
 	var entryResp struct {
-		Phone *string `json:"phone"`
+		IsMember       bool    `json:"is_member"`
+		VehicleType    string  `json:"vehicle_type"`
+		EntryTime      string  `json:"entry_time"`
+		Phone          *string `json:"phone"`
+		TariffInfo     *string `json:"tariff_info"`
+		SlotsAvailable *int    `json:"slots_available"`
 	}
 	json.NewDecoder(resp.Body).Decode(&entryResp)
+
+	// Cache phone for offline exit notifications
 	if entryResp.Phone != nil && *entryResp.Phone != "" {
 		if err := l.store.CachePhone(plate, *entryResp.Phone); err != nil {
 			l.logger.Warn("failed to cache phone", "plate", plate, "err", err)
@@ -173,16 +186,35 @@ func (l *Loop) cloudEntry(ctx context.Context, plate string, result *alpr.PlateR
 		}
 	}
 
-	l.logger.Info("cloud entry reported", "plate", plate)
-	return nil
+	l.logger.Info("cloud entry reported", "plate", plate, "is_member", entryResp.IsMember)
+
+	eventType := "entry_success"
+	if entryResp.IsMember {
+		eventType = "entry_member"
+	}
+
+	evt := pwa.Event{
+		Type:        eventType,
+		Plate:       plate,
+		VehicleType: entryResp.VehicleType,
+		EntryTime:   entryResp.EntryTime,
+		IsMember:    entryResp.IsMember,
+	}
+	if entryResp.TariffInfo != nil {
+		evt.TariffInfo = *entryResp.TariffInfo
+	}
+	evt.SlotsAvailable = entryResp.SlotsAvailable
+
+	return evt, nil
 }
 
-func (l *Loop) localEntry(ctx context.Context, plate string, result *alpr.PlateResult) {
+func (l *Loop) localEntry(ctx context.Context, plate string, result *alpr.PlateResult) pwa.Event {
+	now := time.Now()
 	sess := &session.EdgeSession{
 		ID:            uuid.New().String(),
 		Plate:         plate,
 		VehicleType:   result.VehicleType,
-		EntryTime:     time.Now(),
+		EntryTime:     now,
 		PaymentStatus: "none",
 		Synced:        false,
 	}
@@ -191,6 +223,13 @@ func (l *Loop) localEntry(ctx context.Context, plate string, result *alpr.PlateR
 		l.logger.Error("save local entry", "err", err)
 	} else {
 		l.logger.Info("local entry saved", "plate", plate, "id", sess.ID)
+	}
+
+	return pwa.Event{
+		Type:        "entry_success",
+		Plate:       plate,
+		VehicleType: result.VehicleType,
+		EntryTime:   now.Format(time.RFC3339),
 	}
 }
 

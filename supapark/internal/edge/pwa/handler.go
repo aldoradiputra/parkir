@@ -8,15 +8,20 @@ import (
 	"sync"
 )
 
-// Event represents a server-sent event for the exit screen PWA.
+// Event represents a server-sent event for the exit or entry screen PWA.
 type Event struct {
-	Type      string `json:"type"`                // "idle", "scanning", "detecting", "payment", "qris", "success", "member", "offline_exit", "error"
-	HasPhone  bool   `json:"has_phone,omitempty"` // used by offline_exit to show notification message
-	Plate     string `json:"plate,omitempty"`
-	Fee       int    `json:"fee,omitempty"`
-	SessionID string `json:"session_id,omitempty"`
-	QRString  string `json:"qr_string,omitempty"`
-	Message   string `json:"message,omitempty"`
+	Type           string `json:"type"`                     // "idle","scanning","detecting","payment","qris","success","member","offline_exit","entry_success","entry_member","error"
+	HasPhone       bool   `json:"has_phone,omitempty"`      // offline_exit: notification possible
+	Plate          string `json:"plate,omitempty"`
+	Fee            int    `json:"fee,omitempty"`
+	SessionID      string `json:"session_id,omitempty"`
+	QRString       string `json:"qr_string,omitempty"`
+	Message        string `json:"message,omitempty"`
+	VehicleType    string `json:"vehicle_type,omitempty"`   // entry screens
+	EntryTime      string `json:"entry_time,omitempty"`     // entry screens: RFC3339
+	TariffInfo     string `json:"tariff_info,omitempty"`    // entry screens: human-readable tariff
+	SlotsAvailable *int   `json:"slots_available,omitempty"` // entry screens: remaining capacity
+	IsMember       bool   `json:"is_member,omitempty"`      // entry screens
 }
 
 // SSEBroker manages Server-Sent Events connections for the exit screen.

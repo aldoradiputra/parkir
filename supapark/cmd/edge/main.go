@@ -24,13 +24,19 @@ func main() {
 
 	cfg := edge.LoadConfig()
 
-	exitScreenFS, err := fs.Sub(web.ExitScreenFS, "exit-screen")
-	if err != nil {
-		logger.Error("prepare exit-screen fs", "err", err)
+	var screenFS fs.FS
+	var screenErr error
+	if cfg.LaneMode == "entry" {
+		screenFS, screenErr = fs.Sub(web.EntryScreenFS, "entry-screen")
+	} else {
+		screenFS, screenErr = fs.Sub(web.ExitScreenFS, "exit-screen")
+	}
+	if screenErr != nil {
+		logger.Error("prepare screen fs", "mode", cfg.LaneMode, "err", screenErr)
 		os.Exit(1)
 	}
 
-	srv, err := edge.NewServer(cfg, exitScreenFS, logger)
+	srv, err := edge.NewServer(cfg, screenFS, logger)
 	if err != nil {
 		logger.Error("create edge server", "err", err)
 		os.Exit(1)
