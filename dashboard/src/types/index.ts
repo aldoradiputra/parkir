@@ -170,3 +170,58 @@ export interface AuthState {
 }
 
 export type Locale = "en" | "id";
+
+// ---------- Leads + Projects (ERP) ----------
+
+export type LeadStatus = "new" | "contacted" | "qualified" | "converted" | "lost";
+export type LeadSource = "landing_page" | "referral" | "social_media" | "direct" | "other";
+export type CurrentSystem = "manual" | "boom_gate" | "ticket" | "rfid" | "other";
+export type ProjectStatus = "planning" | "procurement" | "installation" | "testing" | "live" | "maintenance" | "cancelled";
+
+export interface Lead {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  facility_name: string;
+  source: LeadSource;
+  status: LeadStatus;
+  city?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  entry_lanes?: number;
+  exit_lanes?: number;
+  current_system?: CurrentSystem;
+  daily_volume?: number;
+  preferred_date?: string;
+  notes?: string;
+  onboarded_at?: string;
+  converted_at?: string;
+  project_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Project {
+  id: string;
+  lead_id?: string;
+  location_id?: string;
+  facility_name: string;
+  contact_name: string;
+  contact_email: string;
+  contact_phone: string;
+  city?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  entry_lanes: number;
+  exit_lanes: number;
+  status: ProjectStatus;
+  start_date?: string;
+  target_live?: string;
+  actual_live?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}

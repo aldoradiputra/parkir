@@ -3,6 +3,7 @@ package cloud
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"time"
@@ -16,6 +17,7 @@ import (
 	"github.com/aldoradiputra/supapark/internal/cloud/repository"
 	"github.com/aldoradiputra/supapark/internal/cloud/service"
 	"github.com/aldoradiputra/supapark/internal/cloud/websocket"
+	"github.com/aldoradiputra/supapark/web"
 )
 
 type Server struct {
@@ -66,6 +68,8 @@ func (s *Server) registerRoutes() {
 	userRepo := repository.NewUserRepo(s.pool)
 	memberRepo := repository.NewMemberRepo(s.pool)
 	tariffRepo := repository.NewTariffRepo(s.pool)
+	leadRepo := repository.NewLeadRepo(s.pool)
+	projectRepo := repository.NewProjectRepo(s.pool)
 
 	// Services
 	var qrisProvider service.QRISProvider = service.NewStubQRIS(s.logger)
@@ -73,6 +77,7 @@ func (s *Server) registerRoutes() {
 
 	paymentSvc := service.NewPaymentService(paymentRepo, sessionRepo, qrisProvider, notifier, s.hub, s.logger)
 	sessionSvc := service.NewSessionService(sessionRepo, vehicleRepo, memberRepo, tariffRepo, paymentSvc, s.logger)
+	leadSvc := service.NewLeadService(leadRepo, projectRepo, s.logger)
 
 	// Handlers
 	healthH := handler.NewHealthHandler()
@@ -81,6 +86,7 @@ func (s *Server) registerRoutes() {
 	paymentH := handler.NewPaymentHandler(paymentSvc, s.cfg.WebhookSecret, s.logger)
 	vehicleH := handler.NewVehicleHandler(vehicleRepo, sessionRepo, paymentSvc, s.logger)
 	syncH := handler.NewSyncHandler(s.logger)
+	leadH := handler.NewLeadHandler(leadSvc, s.logger)
 
 	// Auth middleware
 	jwtAuth := middleware.JWTAuth(s.cfg.JWTSecret)
@@ -118,13 +124,40 @@ func (s *Server) registerRoutes() {
 		r.Post("/{plate}/prepay", vehicleH.Prepay)
 	})
 
+	// Public lead capture
+	r.Post("/api/v1/leads", leadH.Create)
+	r.Put("/api/v1/leads/{id}/onboard", leadH.Onboard)
+
+	locationH := handler.NewLocationHandler(locationRepo, s.logger)
+	r.Get("/api/v1/locations/public", locationH.ListPublic)
+
 	r.Route("/api/v1/admin", func(r chi.Router) {
 		r.Use(jwtAuth)
-		r.Get("/locations", handler.NewLocationHandler(locationRepo, s.logger).List)
+		r.Get("/locations", locationH.List)
 		r.Get("/sessions", sessionH.List)
+
+		r.Route("/leads", func(r chi.Router) {
+			r.Get("/", leadH.ListLeads)
+			r.Get("/{id}", leadH.GetLead)
+			r.Put("/{id}", leadH.UpdateLead)
+			r.Post("/{id}/convert", leadH.ConvertLead)
+			r.Delete("/{id}", leadH.DeleteLead)
+		})
+
+		r.Route("/projects", func(r chi.Router) {
+			r.Get("/", leadH.ListProjects)
+			r.Get("/{id}", leadH.GetProject)
+			r.Put("/{id}", leadH.UpdateProject)
+			r.Delete("/{id}", leadH.DeleteProject)
+		})
 	})
 
 	r.Get("/ws", s.hub.HandleUpgrade)
+
+	// Serve onboarding static files
+	onboardingFS, _ := fs.Sub(web.OnboardingFS, "onboarding")
+	r.Handle("/onboarding/*", http.StripPrefix("/onboarding/", http.FileServer(http.FS(onboardingFS))))
+	r.Get("/onboarding", http.RedirectHandler("/onboarding/step1.html", http.StatusMovedPermanently).ServeHTTP)
 
 	_ = notifier
 }

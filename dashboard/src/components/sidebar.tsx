@@ -13,6 +13,8 @@ import {
   ChevronDown,
   Globe,
   ParkingCircle,
+  UserPlus,
+  FolderKanban,
 } from "lucide-react";
 import {
   Select,
@@ -31,6 +33,8 @@ const navItems = [
   { href: "/revenue", icon: DollarSign, labelKey: "revenue" },
   { href: "/members", icon: Users, labelKey: "members" },
   { href: "/plate-rules", icon: ShieldCheck, labelKey: "plateRules" },
+  { href: "/leads", icon: UserPlus, labelKey: "leads" },
+  { href: "/projects", icon: FolderKanban, labelKey: "projects" },
   { href: "/devices", icon: Cpu, labelKey: "devices" },
   { href: "/settings", icon: Settings, labelKey: "settings" },
 ];
@@ -42,6 +46,8 @@ const navLabels: Record<string, Record<string, string>> = {
     revenue: "Revenue",
     members: "Members",
     plateRules: "Plate Rules",
+    leads: "Leads",
+    projects: "Projects",
     devices: "Devices",
     settings: "Settings",
   },
@@ -51,6 +57,8 @@ const navLabels: Record<string, Record<string, string>> = {
     revenue: "Pendapatan",
     members: "Anggota",
     plateRules: "Aturan Plat",
+    leads: "Prospek",
+    projects: "Proyek",
     devices: "Perangkat",
     settings: "Pengaturan",
   },

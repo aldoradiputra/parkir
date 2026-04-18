@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detail Fasilitas — SupaPark</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container wide">
+    <!-- Logo -->
+    <div class="logo-lockup small">
+      <svg class="logo-icon" viewBox="0 0 80 80" fill="none">
+        <rect x="4" y="4" width="72" height="72" rx="16" stroke="#F5A623" stroke-width="4"/>
+        <path d="M28 56V24h14c7.7 0 14 6.3 14 14s-6.3 14-14 14H28" stroke="#F5A623" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="logo-text">SupaPark</span>
+    </div>
+
+    <h1 class="page-title">Detail Fasilitas Parkir</h1>
+    <p class="page-sub">Lengkapi informasi fasilitas Anda agar kami dapat mempersiapkan implementasi terbaik.</p>
+
+    <form id="onboard-form" class="form-card">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="city">Kota</label>
+          <input type="text" id="city" name="city" placeholder="Surabaya">
+        </div>
+        <div class="form-group">
+          <label for="daily_volume">Volume Kendaraan / Hari</label>
+          <input type="number" id="daily_volume" name="daily_volume" min="0" placeholder="500">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="address">Alamat Lengkap</label>
+        <input type="text" id="address" name="address" placeholder="Jl. Pemuda No. 15">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="entry_lanes">Jalur Masuk</label>
+          <input type="number" id="entry_lanes" name="entry_lanes" min="1" value="1">
+        </div>
+        <div class="form-group">
+          <label for="exit_lanes">Jalur Keluar</label>
+          <input type="number" id="exit_lanes" name="exit_lanes" min="1" value="1">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="current_system">Sistem Saat Ini</label>
+          <select id="current_system" name="current_system">
+            <option value="">-- Pilih --</option>
+            <option value="manual">Manual (tanpa palang)</option>
+            <option value="boom_gate">Palang otomatis (tiket/kartu)</option>
+            <option value="ticket">Sistem tiket</option>
+            <option value="rfid">RFID / kartu akses</option>
+            <option value="other">Lainnya</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="preferred_date">Tanggal Demo / Instalasi</label>
+          <input type="date" id="preferred_date" name="preferred_date">
+        </div>
+      </div>
+
+      <!-- Map -->
+      <div class="form-group">
+        <label>Lokasi Fasilitas <span class="label-hint">Klik peta untuk menandai lokasi</span></label>
+        <div id="map"></div>
+        <input type="hidden" id="latitude" name="latitude">
+        <input type="hidden" id="longitude" name="longitude">
+        <p id="map-address" class="map-hint"></p>
+      </div>
+
+      <button type="submit" id="submit-btn" class="btn-primary">
+        <span class="btn-text">Kirim Detail</span>
+        <span class="btn-loading" style="display:none;">Mengirim...</span>
+      </button>
+
+      <p id="error-msg" class="error-msg" style="display:none;"></p>
+    </form>
+
+    <!-- Success screen -->
+    <div id="success-screen" class="success-card" style="display:none;">
+      <div class="success-icon">
+        <svg viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="28" stroke="#00FF88" stroke-width="3"/>
+          <path d="M20 32l8 8 16-16" stroke="#00FF88" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h2>Detail Terkirim!</h2>
+      <p>Terima kasih! Tim kami akan segera mempersiapkan proposal dan menghubungi Anda.</p>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+ALTER TABLE leads DROP CONSTRAINT IF EXISTS fk_leads_project;
+DROP TABLE IF EXISTS projects;
+DROP TABLE IF EXISTS leads;
+DROP TYPE IF EXISTS project_status;
+DROP TYPE IF EXISTS current_system;
+DROP TYPE IF EXISTS lead_source;
+DROP TYPE IF EXISTS lead_status;
+ALTER TABLE locations DROP COLUMN IF EXISTS latitude;
+ALTER TABLE locations DROP COLUMN IF EXISTS longitude;

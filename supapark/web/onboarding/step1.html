@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daftar — SupaPark</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Logo -->
+    <div class="logo-lockup">
+      <svg class="logo-icon" viewBox="0 0 80 80" fill="none">
+        <rect x="4" y="4" width="72" height="72" rx="16" stroke="#F5A623" stroke-width="4"/>
+        <path d="M28 56V24h14c7.7 0 14 6.3 14 14s-6.3 14-14 14H28" stroke="#F5A623" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="logo-text">SupaPark</span>
+    </div>
+
+    <h1 class="page-title">Daftarkan Lokasi Anda</h1>
+    <p class="page-sub">Isi formulir singkat ini untuk memulai. Tim kami akan menghubungi Anda dalam 24 jam.</p>
+
+    <!-- Form -->
+    <form id="lead-form" class="form-card">
+      <div class="form-group">
+        <label for="name">Nama Lengkap</label>
+        <input type="text" id="name" name="name" required placeholder="Ahmad Fauzi">
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required placeholder="ahmad@email.com">
+      </div>
+      <div class="form-group">
+        <label for="phone">No. HP / WhatsApp</label>
+        <input type="tel" id="phone" name="phone" required placeholder="08123456789">
+      </div>
+      <div class="form-group">
+        <label for="facility_name">Nama Fasilitas Parkir</label>
+        <input type="text" id="facility_name" name="facility_name" required placeholder="Mall Surabaya Pusat">
+      </div>
+
+      <button type="submit" id="submit-btn" class="btn-primary">
+        <span class="btn-text">Daftar Sekarang</span>
+        <span class="btn-loading" style="display:none;">Mengirim...</span>
+      </button>
+
+      <p id="error-msg" class="error-msg" style="display:none;"></p>
+    </form>
+
+    <!-- Success screen -->
+    <div id="success-screen" class="success-card" style="display:none;">
+      <div class="success-icon">
+        <svg viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="28" stroke="#00FF88" stroke-width="3"/>
+          <path d="M20 32l8 8 16-16" stroke="#00FF88" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h2>Pendaftaran Berhasil!</h2>
+      <p>Terima kasih, <span id="success-name"></span>. Tim kami akan menghubungi Anda segera.</p>
+      <a id="step2-link" href="#" class="btn-secondary">Lengkapi Detail Fasilitas →</a>
+    </div>
+
+    <p class="footer-text">Sudah terdaftar? <a href="step2.html">Lengkapi detail fasilitas</a></p>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

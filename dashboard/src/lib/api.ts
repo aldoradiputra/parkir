@@ -109,4 +109,17 @@ export const endpoints = {
     resolve: (locationId: string, alertId: string) =>
       `/locations/${locationId}/alerts/${alertId}/resolve`,
   },
+  leads: {
+    list: "/admin/leads",
+    get: (id: string) => `/admin/leads/${id}`,
+    update: (id: string) => `/admin/leads/${id}`,
+    convert: (id: string) => `/admin/leads/${id}/convert`,
+    delete: (id: string) => `/admin/leads/${id}`,
+  },
+  projects: {
+    list: "/admin/projects",
+    get: (id: string) => `/admin/projects/${id}`,
+    update: (id: string) => `/admin/projects/${id}`,
+    delete: (id: string) => `/admin/projects/${id}`,
+  },
 };

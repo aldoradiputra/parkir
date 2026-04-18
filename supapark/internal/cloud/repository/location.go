@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/aldoradiputra/supapark/pkg/dto"
 	"github.com/aldoradiputra/supapark/pkg/model"
 )
 
@@ -57,6 +58,26 @@ func (r *LocationRepo) List(ctx context.Context) ([]model.Location, error) {
 			&loc.ID, &loc.Name, &loc.Address, &loc.Timezone,
 			&loc.CreatedAt, &loc.UpdatedAt,
 		); err != nil {
+			return nil, err
+		}
+		locations = append(locations, loc)
+	}
+	return locations, rows.Err()
+}
+
+func (r *LocationRepo) ListPublic(ctx context.Context) ([]dto.PublicLocationResponse, error) {
+	query := `SELECT id, name, latitude, longitude FROM locations ORDER BY name`
+
+	rows, err := r.pool.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var locations []dto.PublicLocationResponse
+	for rows.Next() {
+		var loc dto.PublicLocationResponse
+		if err := rows.Scan(&loc.ID, &loc.Name, &loc.Latitude, &loc.Longitude); err != nil {
 			return nil, err
 		}
 		locations = append(locations, loc)

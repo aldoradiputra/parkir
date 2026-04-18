@@ -10,3 +10,6 @@ var EntryScreenFS embed.FS
 
 //go:embed parking-pwa
 var ParkingPWAFS embed.FS
+
+//go:embed onboarding
+var OnboardingFS embed.FS
