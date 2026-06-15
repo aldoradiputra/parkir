@@ -4,8 +4,8 @@ import { getMessages } from "next-intl/server";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Parkir - Smart Parking Dashboard",
-  description: "Intelligent parking management system dashboard",
+  title: "SupaPark - Sistem Parkir Cerdas",
+  description: "Smart parking management system for Indonesia",
 };
 
 export default async function RootLayout({
@@ -18,12 +18,6 @@ export default async function RootLayout({
   return (
     <html lang="id" className="dark">
       <head>
-        {/*
-         * Load Plus Jakarta Sans and JetBrains Mono from Google Fonts.
-         * In production with network access, these will load from CDN.
-         * The CSS variables --font-jakarta and --font-jetbrains are set
-         * via globals.css to provide fallback font stacks.
-         */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"

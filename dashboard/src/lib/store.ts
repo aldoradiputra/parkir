@@ -4,7 +4,6 @@ import type { User, Location, Locale } from "@/types";
 
 interface AppState {
   user: User | null;
-  token: string | null;
   isAuthenticated: boolean;
   selectedLocationId: string | null;
   locations: Location[];
@@ -12,8 +11,7 @@ interface AppState {
   sidebarOpen: boolean;
 
   setUser: (user: User | null) => void;
-  setToken: (token: string | null) => void;
-  login: (user: User, token: string) => void;
+  login: (user: User) => void;
   logout: () => void;
   setSelectedLocationId: (id: string) => void;
   setLocations: (locations: Location[]) => void;
@@ -26,25 +24,21 @@ export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
       user: null,
-      token: null,
       isAuthenticated: false,
       selectedLocationId: null,
       locations: [],
       locale: "id",
       sidebarOpen: true,
 
-      setUser: (user) => set({ user }),
-      setToken: (token) => set({ token }),
-      login: (user, token) =>
+      setUser: (user) => set({ user, isAuthenticated: !!user }),
+      login: (user) =>
         set({
           user,
-          token,
           isAuthenticated: true,
         }),
       logout: () =>
         set({
           user: null,
-          token: null,
           isAuthenticated: false,
           selectedLocationId: null,
         }),
@@ -56,9 +50,8 @@ export const useAppStore = create<AppState>()(
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
     }),
     {
-      name: "parkir-store",
+      name: "supapark-store",
       partialize: (state) => ({
-        token: state.token,
         selectedLocationId: state.selectedLocationId,
         locale: state.locale,
         isAuthenticated: state.isAuthenticated,

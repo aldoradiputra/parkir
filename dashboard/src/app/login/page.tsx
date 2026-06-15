@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAppStore } from "@/lib/store";
-import api, { endpoints } from "@/lib/api";
+import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAppStore();
+  const { setUser } = useAppStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -24,20 +24,29 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await api.post(endpoints.auth.login, {
+      const supabase = createClient();
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      const { tenant, token } = response.data;
-      login(tenant, token);
-      if (typeof window !== "undefined") {
-        localStorage.setItem("parkir_token", token);
+
+      if (authError) {
+        setError(authError.message);
+        return;
       }
-      router.push("/overview");
-    } catch (err: any) {
-      setError(
-        err.response?.data?.error || "Invalid email or password"
-      );
+
+      if (data.user) {
+        setUser({
+          id: data.user.id,
+          email: data.user.email ?? "",
+          name: data.user.user_metadata?.name ?? data.user.email ?? "",
+          role: data.user.user_metadata?.role ?? "admin",
+          locations: data.user.user_metadata?.locations ?? [],
+        });
+        router.push("/overview");
+      }
+    } catch {
+      setError("An unexpected error occurred");
     } finally {
       setLoading(false);
     }
@@ -46,18 +55,17 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-surface-base flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <ParkingCircle className="h-12 w-12 text-amber mb-4" />
           <h1 className="text-2xl font-semibold text-text-primary">
             Welcome back
           </h1>
           <p className="text-sm text-text-secondary mt-1">
-            Sign in to your Parkir dashboard
+            Sign in to your SupaPark dashboard
           </p>
         </div>
 
-        <Card>
+        <Card className="bg-surface-raised border-border">
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
@@ -74,9 +82,10 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@parkir.id"
+                  placeholder="admin@supapark.id"
                   required
                   autoComplete="email"
+                  className="bg-surface-overlay border-border"
                 />
               </div>
 
@@ -92,7 +101,7 @@ export default function LoginPage() {
                     placeholder="Enter password"
                     required
                     autoComplete="current-password"
-                    className="pr-10"
+                    className="pr-10 bg-surface-overlay border-border"
                   />
                   <button
                     type="button"
@@ -108,18 +117,9 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  className="text-xs text-text-tertiary hover:text-amber transition-colors"
-                >
-                  Forgot password?
-                </button>
-              </div>
-
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full bg-amber hover:bg-amber-500 text-surface-base font-semibold"
                 disabled={loading}
               >
                 {loading ? "Signing in..." : "Sign In"}
@@ -129,7 +129,7 @@ export default function LoginPage() {
         </Card>
 
         <p className="text-center text-xs text-text-tertiary mt-6">
-          Parkir Smart Parking System
+          SupaPark Smart Parking System
         </p>
       </div>
     </div>

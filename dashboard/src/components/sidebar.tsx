@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Clock,
@@ -10,12 +11,13 @@ import {
   ShieldCheck,
   Cpu,
   Settings,
-  ChevronDown,
   Globe,
   ParkingCircle,
   UserPlus,
   FolderKanban,
+  LogOut,
 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import {
   Select,
   SelectContent,
@@ -66,8 +68,16 @@ const navLabels: Record<string, Record<string, string>> = {
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { locale, setLocale, locations, selectedLocationId, setSelectedLocationId } =
+  const router = useRouter();
+  const { locale, setLocale, locations, selectedLocationId, setSelectedLocationId, logout } =
     useAppStore();
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    logout();
+    router.push("/login");
+  };
 
   const labels = navLabels[locale] || navLabels.id;
 
@@ -79,7 +89,7 @@ export function Sidebar() {
         <div className="flex items-center gap-2.5 px-5 py-5">
           <ParkingCircle className="h-7 w-7 text-amber" />
           <span className="text-lg font-semibold text-text-primary tracking-tight">
-            Parkir
+            SupaPark
           </span>
         </div>
 
@@ -135,14 +145,21 @@ export function Sidebar() {
 
         <Separator />
 
-        {/* Language toggle */}
-        <div className="px-4 py-4">
+        {/* Language toggle + Logout */}
+        <div className="px-4 py-4 space-y-1">
           <button
             onClick={() => setLocale(locale === "en" ? "id" : "en")}
             className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-text-secondary hover:text-text-primary hover:bg-surface-overlay transition-colors"
           >
             <Globe className="h-4 w-4" />
             <span>{locale === "en" ? "English" : "Bahasa Indonesia"}</span>
+          </button>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-text-secondary hover:text-error hover:bg-error/5 transition-colors"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>{locale === "en" ? "Sign Out" : "Keluar"}</span>
           </button>
         </div>
       </aside>
